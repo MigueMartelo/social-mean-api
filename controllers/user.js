@@ -1,9 +1,11 @@
 'use strict'
 
-var bcrypt = require('bcrypt-nodejs');
-var User = require('../models/user');
-var jwt = require('../services/jwt');
+let bcrypt = require('bcrypt-nodejs');
+let User = require('../models/user');
+let jwt = require('../services/jwt');
+let mongoosePagination = require('mongoose-pagination');
 
+// Test methods
 function home(req, res) {
 	res.status(200).send({
 		message: 'Hola mundo en NodeJS'
@@ -16,9 +18,10 @@ function pruebas(req, res) {
 	});
 }
 
+// Save users DB
 function saveUser(req, res) {
-	var params = req.body;
-	var user = new User();
+	let params = req.body;
+	let user = new User();
 
 	if(params.name && params.surname && params.nick && params.email && params.password){
 
@@ -64,11 +67,12 @@ function saveUser(req, res) {
 	}
 }
 
+// Login user
 function loginUser(req, res){
-	var params = req.body;
+	let params = req.body;
 
-	var email = params.email;
-	var password = params.password;
+	let email = params.email;
+	let password = params.password;
 
 	User.findOne({email: email}, (err, user) => {
 		if(err) return res.status(500).send({message: 'Error en la petición'});
@@ -97,9 +101,46 @@ function loginUser(req, res){
 	});
 }
 
+// Get user information
+function getUser(req, res){
+	let userId = req.params.id;
+
+	User.findById(userId, (err, user) => {
+		if(err) return res.status(500).send({message: 'Error en la petición!'});
+
+		if(!user) return res.status(404).send({message: 'El usuario no existe'});
+
+		user.password = undefined;
+		return res.status(200).send({user});
+	});
+}
+
+// Get users list paginated
+function getUsers(req, res){
+	let identityUserId = req.user.sub;
+
+	let page = 1;
+	if(req.params.page){ page = req.params.page; }
+
+	let itemsPerPage = 3;
+	User.find().sort('_id').paginate(page, itemsPerPage, (err, users, total) => {
+		if(err) return res.status(500).send({message: 'Error en la petición'});
+
+		if(!users) return res.status(500).send({message: 'No hay usuarios disponibles'});
+
+		return res.status(200).send({
+			users,
+			total,
+			pages: Math.ceil(total/itemsPerPage)
+		});
+	});
+}
+
 module.exports = {
 	home,
 	pruebas,
 	saveUser,
-	loginUser
+	loginUser,
+	getUser,
+	getUsers
 }
