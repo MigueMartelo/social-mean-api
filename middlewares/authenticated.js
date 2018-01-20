@@ -1,8 +1,8 @@
 'use strict'
 
-var jwt = require('jwt-simple');
-var moment = require('moment');
-var secret = 'claveSecreta_curso_desarrollar_red_angular';
+let jwt = require('jwt-simple');
+let moment = require('moment');
+let secret = 'claveSecreta_curso_desarrollar_red_angular';
 
 exports.ensureAuth = function(req, res, next){
 
@@ -10,10 +10,10 @@ exports.ensureAuth = function(req, res, next){
 		return res.status(403).send({message: 'La petición no tiene la cabecera de autenticación'});
 	}
 
-	var token = req.headers.authorization.replace(/['"]+/g, '');
+	let token = req.headers.authorization.replace(/['"]+/g, '');
 
 	try{
-		var payload = jwt.decode(token, secret);
+		let payload = jwt.decode(token, secret);
 
 		if(payload.exp <= moment().unix()){
 			return res.status(401).send({

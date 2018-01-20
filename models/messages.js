@@ -1,9 +1,9 @@
 'use strict'
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var MessageSchema = Schema({
+let MessageSchema = Schema({
 		emmiter: { type: Schema.ObjectId, ref:'User'},
 		receiver: { type: Schema.ObjectId, ref:'User'},
 		text: String,
