@@ -8,7 +8,6 @@ let md_auth = require('../middlewares/authenticated');
 let multipart = require('connect-multiparty');
 let md_upload = multipart({ uploadDir: './uploads/publications'});
 
-api.get('/probando', md_auth.ensureAuth, PublicationController.probando);
 api.post('/publication', md_auth.ensureAuth, PublicationController.savePublication);
 api.get('/publications/:page?', md_auth.ensureAuth, PublicationController.getPublications);
 api.get('/publication/:id', md_auth.ensureAuth, PublicationController.getPublication);

@@ -16,12 +16,6 @@ function home(req, res) {
 	});
 }
 
-function pruebas(req, res) {
-	res.status(200).send({
-		message: 'Prueba de rutas en el server NodeJS'
-	});
-}
-
 // Save users DB
 function saveUser(req, res) {
 	let params = req.body;
@@ -312,7 +306,6 @@ function getImageFile(req, res){
 
 module.exports = {
 	home,
-	pruebas,
 	saveUser,
 	loginUser,
 	getUser,

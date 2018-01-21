@@ -9,10 +9,6 @@ let Publication = require('../models/publication');
 let User = require('../models/user');
 let Follow = require('../models/follow');
 
-function probando(req, res){
-	return res.status(200).send({message: 'Prueba desde publicationsController'});
-}
-
 function savePublication(req, res){
 	let params = req.body;	
 
@@ -148,7 +144,6 @@ function getImageFile(req, res){
 }
 
 module.exports = {
-	probando,
 	savePublication,
 	getPublications,
 	getPublication,
