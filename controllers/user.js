@@ -2,6 +2,7 @@
 
 let bcrypt = require('bcrypt-nodejs');
 let User = require('../models/user');
+let Follow = require('../models/follow');
 let jwt = require('../services/jwt');
 let mongoosePagination = require('mongoose-pagination');
 let fs = require('fs');
@@ -112,14 +113,38 @@ function getUser(req, res){
 
 		if(!user) return res.status(404).send({message: 'El usuario no existe'});
 
-		user.password = undefined;
-		return res.status(200).send({user});
+		followThisUser(req.user.sub, userId).then((value) => {			
+			user.password = undefined;
+			return res.status(200).send({
+				user, 
+				following: value.following, 
+				followed: value.followed
+			});
+		});			
+		
 	});
+}
+
+async function followThisUser(identity_user_id, user_id){
+	let following = await Follow.findOne({"user":identity_user_id, "followed": user_id}).exec((err, follow) => {
+			if (err) return handleError(err);
+			return follow;
+		});
+
+	let followed = await Follow.findOne({"user":user_id, "followed": identity_user_id}).exec((err, follow) => {
+			if (err) return handleError(err);
+			return follow;
+		});
+
+	return {
+		following: following,
+		followed: followed
+	}
 }
 
 // Get users list paginated
 function getUsers(req, res){
-	let identityUserId = req.user.sub;
+	let identity_user_id = req.user.sub;
 
 	let page = 1;
 	if(req.params.page){ page = req.params.page; }
@@ -130,12 +155,74 @@ function getUsers(req, res){
 
 		if(!users) return res.status(500).send({message: 'No hay usuarios disponibles'});
 
-		return res.status(200).send({
-			users,
-			total,
-			pages: Math.ceil(total/itemsPerPage)
-		});
+		followUserIds(identity_user_id).then((value) => {
+			
+			return res.status(200).send({
+				users,
+				users_following: value.following,
+				users_followe_me: value.followed,
+				total,
+				pages: Math.ceil(total/itemsPerPage)
+			});
+		});		
 	});
+}
+
+async function followUserIds(user_id){
+	let following = await Follow.find({"user": user_id}).select({'_id':0, '__v':0, 'user':0}).exec((err, follows) => {
+		return follows;
+	});
+
+	let followed = await Follow.find({"followed": user_id}).select({'_id':0, '__v':0, 'followed':0}).exec((err, follows) => {
+		return follows;
+	});
+
+	// Process following ids
+	let following_clean = [];
+
+	following.forEach((follow) => {
+		following_clean.push(follow.followed);
+	});
+
+	// Process followed ids
+	let followed_clean = [];
+
+	followed.forEach((follow) => {
+		followed_clean.push(follow.user);
+	});	
+
+	return {
+		following: following_clean,
+		followed: followed_clean
+	}
+}
+
+function getCounters(req, res){
+	let userId = req.user.sub;
+	if(req.params.id){
+		userId = req.params.id;
+	}
+
+	getCountFollow(userId).then((value) => {
+		return res.status(200).send(value);
+	});
+}
+
+async function getCountFollow(user_id){
+	let following = await Follow.count({"user":user_id}).exec((err, count) => {
+		if(err) return handleError(err);
+		return count;
+	});
+
+	let followed = await Follow.count({"followed": user_id}).exec((err, count) => {
+		if(err) return handleError(err);
+		return count;
+	});
+
+	return {
+		following: following,
+		followed: followed
+	}
 }
 
 // Update user
@@ -223,7 +310,8 @@ module.exports = {
 	loginUser,
 	getUser,
 	getUsers,
+	getCounters,
 	userUpdate,
 	uploadImage,
-	getImageFile
+	getImageFile,
 }

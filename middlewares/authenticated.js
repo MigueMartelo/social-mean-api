@@ -3,6 +3,7 @@
 let jwt = require('jwt-simple');
 let moment = require('moment');
 let secret = 'claveSecreta_curso_desarrollar_red_angular';
+let payload;
 
 exports.ensureAuth = function(req, res, next){
 
@@ -13,7 +14,7 @@ exports.ensureAuth = function(req, res, next){
 	let token = req.headers.authorization.replace(/['"]+/g, '');
 
 	try{
-		let payload = jwt.decode(token, secret);
+		payload = jwt.decode(token, secret);
 
 		if(payload.exp <= moment().unix()){
 			return res.status(401).send({

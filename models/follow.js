@@ -1,9 +1,9 @@
 'use strict'
 
-let mongoose = require('mongoose');
-let Schema = mongoose.Schema;
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-let FollowSchema = Schema({
+var FollowSchema = Schema({
 		user: { type: Schema.ObjectId, ref:'User'},
 		followed: { type: Schema.ObjectId, ref:'User'}
 });
