@@ -18,8 +18,5 @@
     "moment": "^2.20.1",
     "mongoose": "^4.13.9",
     "mongoose-pagination": "^1.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^1.14.10"
   }
 }

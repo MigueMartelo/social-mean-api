@@ -238,14 +238,27 @@ function userUpdate(req, res){
 		return res.status(500).send({message: 'No tienes permiso para actualizar los datos del usuario'});		
 	}
 
-	User.findByIdAndUpdate(userId, update, {new: true}, (err, userUpdated) => {
-		if(err) return res.status(500).send({message: 'Error en la petición'});
+	User.find({$or: [
+			{email: update.email.toLowerCase()},
+			{nick: update.nick.toLowerCase()}
+		]}).exec((err, users) => {
+			let user_isset = false;
 
-		if(!userUpdated) return res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+			users.forEach((user) => {
+				if(user && user._id != userId) user_isset = true;
+			});			
 
-		userUpdated.password = undefined;
-		return res.status(200).send({userUpdated});
-	});
+			if(user_isset) return res.status(404).send({message: 'Los datos ya están en uso'});
+
+			User.findByIdAndUpdate(userId, update, {new: true}, (err, userUpdated) => {
+				if(err) return res.status(500).send({message: 'Error en la petición'});
+
+				if(!userUpdated) return res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+
+				userUpdated.password = undefined;
+				return res.status(200).send({userUpdated});
+			});
+		});
 }
 
 // Upload images file and avatar users
