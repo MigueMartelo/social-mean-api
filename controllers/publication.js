@@ -35,7 +35,7 @@ function getPublications(req, res){
 		page = req.params.page;
 	}
 
-	let itemsPerPage = 2;
+	let itemsPerPage = 4;
 
 	Follow.find({user: req.user.sub}).populate('followed').exec((err, follows) => {
 		if(err) return res.status(500).send({message: 'Error al devolver el seguimiento'});
@@ -45,6 +45,7 @@ function getPublications(req, res){
 		follows.forEach((follow) => {
 			follows_clean.push(follow.followed);
 		});
+		follows_clean.push(req.user.sub);
 
 		Publication.find({user: {'$in': follows_clean}}).sort('-created_at').populate('user').paginate(page, itemsPerPage, (err, publications, total) => {
 			if(err) return res.status(500).send({message: 'Error al devolver publicaciones'});			
@@ -55,6 +56,7 @@ function getPublications(req, res){
 				total_items: total,
 				pages: Math.ceil(total/itemsPerPage),
 				page: page,
+				items_per_page: itemsPerPage,
 				publications
 			})
 		});
