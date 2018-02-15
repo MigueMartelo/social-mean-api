@@ -56,12 +56,45 @@ function getFollowingUsers(req, res){
 
 		if(!follows) return res.status(404).send({message: 'No sigues ningun usuario'});
 
-		return res.status(200).send({
-			total: total,
-			pages: Math.ceil(total/itemsPerPage),
-			follows
-		});
+		followUserIds(req.user.sub).then((value) => {
+			return res.status(200).send({
+				total: total,
+				pages: Math.ceil(total/itemsPerPage),
+				follows,
+				users_following: value.following,
+				users_follow_me: value.followed
+			});
+		});		
 	});
+}
+
+async function followUserIds(user_id){
+	let following = await Follow.find({"user": user_id}).select({'_id':0, '__v':0, 'user':0}).exec((err, follows) => {
+		return follows;
+	});
+
+	let followed = await Follow.find({"followed": user_id}).select({'_id':0, '__v':0, 'followed':0}).exec((err, follows) => {
+		return follows;
+	});
+
+	// Process following ids
+	let following_clean = [];
+
+	following.forEach((follow) => {
+		following_clean.push(follow.followed);
+	});
+
+	// Process followed ids
+	let followed_clean = [];
+
+	followed.forEach((follow) => {
+		followed_clean.push(follow.user);
+	});	
+
+	return {
+		following: following_clean,
+		followed: followed_clean
+	}
 }
 
 function getFollowedUsers(req, res){
@@ -86,10 +119,14 @@ function getFollowedUsers(req, res){
 
 		if(!follows) return res.status(404).send({message: 'No te sigue ningun usuario'});
 
-		return res.status(200).send({
-			total: total,
-			pages: Math.ceil(total/itemsPerPage),
-			follows
+		followUserIds(req.user.sub).then((value) => {
+			return res.status(200).send({
+				total: total,
+				pages: Math.ceil(total/itemsPerPage),
+				follows,
+				users_following: value.following,
+				users_follow_me: value.followed
+			});
 		});
 	});
 
